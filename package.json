@@ -1,0 +1,37 @@
+{
+  "name": "teamsho",
+  "version": "1.0.0",
+  "description": "a platform to make join event and find a team to do sports",
+  "main": "build/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon --watch src index.js",
+    "build": "npx babel src --out-dir build --source-maps",
+    "serve": "node build/index.js"
+  },
+  "keywords": [
+    "team",
+    "web",
+    "backend",
+    "teamsho",
+    "sport"
+  ],
+  "author": "alirezamolaii@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "chalk": "^2.4.2",
+    "dotenv": "^7.0.0",
+    "express": "^4.16.4",
+    "mongoose": "^5.5.3",
+    "morgan": "^1.9.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.4.3",
+    "@babel/core": "^7.4.3",
+    "@babel/preset-env": "^7.4.3",
+    "@babel/register": "^7.4.0",
+    "babel-preset-minify": "^0.5.0",
+    "nodemon": "^1.18.11"
+  }
+}

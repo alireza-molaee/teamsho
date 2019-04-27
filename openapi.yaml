@@ -1,0 +1,152 @@
+openapi: 3.0.1
+info:
+  title: teamsho
+  version: 1.0.0
+  description: a platform to make join event and find a team to do sports
+  contact:
+    email: alirezamolaii@gmail.com
+    name: alireza
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
+servers:
+  - url: 'https://petstore.swagger.io/v2'
+  - url: 'http://petstore.swagger.io/v2'
+paths:
+  '/user/login':
+    post:
+      summary: login
+      responses:
+        '200':
+          description: A JSON array of user names
+  '/user/register':
+    post:
+      summary: login
+      responses:
+        '200':
+          description: A JSON array of user names
+  '/user/profile':
+    get:
+      summary: login
+      responses:
+        '200':
+          description: A JSON array of user names
+    put:
+      summary: login
+      responses:
+        '200':
+          description: A JSON array of user names
+  '/user/forget-password':
+    post:
+      summary: login
+      responses:
+        '200':
+          description: A JSON array of user names
+  '/user/upload-picture':
+    post:
+      summary: login
+      responses:
+        '200':
+          description: A JSON array of user names
+  '/my-events':
+    get:
+      summary: login
+      responses:
+        '200':
+          description: A JSON array of user names
+  '/events':
+    post:
+      summary: login
+      responses:
+        '200':
+          description: A JSON array of user names
+  '/event':
+    post:
+      summary: login
+      responses:
+        '200':
+          description: A JSON array of user names
+  '/event/{userId}':
+    get:
+      summary: login
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The ID of the user to return.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: A JSON array of user names
+    put:
+      summary: login
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The ID of the user to return.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: A JSON array of user names
+    delete:
+      summary: login
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The ID of the user to return.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: A JSON array of user names
+  '/event/{userId}/members':
+    get:
+      summary: login
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The ID of the user to return.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: A JSON array of user names
+  '/event/{userId}/subscribeEvent':
+    post:
+      summary: login
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The ID of the user to return.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: A JSON array of user names
+  '/skills':
+    get:
+      summary: login
+      responses:
+        '200':
+          description: A JSON array of user names
+          
+    
