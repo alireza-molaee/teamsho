@@ -1,7 +1,7 @@
 {
   "name": "teamsho",
   "version": "1.0.0",
-  "description": "a platform to make join event and find a team to do sports",
+  "description": "A system for finding teams and holding sports events",
   "main": "build/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
