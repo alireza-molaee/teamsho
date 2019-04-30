@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: teamsho
   version: 1.0.0
-  description: a platform to make join event and find a team to do sports
+  description: A system for finding teams and holding sports events
   contact:
     email: alirezamolaii@gmail.com
     name: alireza
@@ -13,140 +13,768 @@ externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
 servers:
+# Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/alirezamolaii/teamsho/1.0.0
   - url: 'https://petstore.swagger.io/v2'
   - url: 'http://petstore.swagger.io/v2'
-paths:
+tags:
+  - name: user
+  - name: event
+  - name: skill
+paths:  
   '/user/login':
     post:
-      summary: login
+      summary: Login
+      tags:
+        - user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phoneNumber:
+                  type: string
+                password:
+                  type: string
+              required:
+                - phoneNumber
+                - password
       responses:
         '200':
-          description: A JSON array of user names
+          description: A JSON map of user detail that contain access token that send in header as Autorization for authenticate user
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
   '/user/register':
     post:
-      summary: login
+      summary: Register
+      tags:
+        - user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName: 
+                  type: string
+                lastName:
+                  type: string
+                phoneNumber:
+                  type: string 
+              required:
+                - firstName
+                - lastName
+                - phoneNumber
+      responses:
+        '201':
+          description: Return user ID to confirm phone number via secret code that send through sms and this id
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
+  '/user/confirm':
+    post:
+      summary: Confirm User
+      tags:
+        - user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                secretCode:
+                  type: string
+              required:
+               - userId
+               - secretCode
       responses:
         '200':
-          description: A JSON array of user names
+          description: A JSON map of user detail that contain access token that send in header as Autorization for authenticate user
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
+  '/user/send/confirm-code':
+    post:
+      summary: Send confirmation code
+      tags:
+        - user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phoneNumber:
+                  type: string
+      responses:
+        '202':
+          description: send request to another service for send message
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
   '/user/profile':
     get:
-      summary: login
+      summary: Get Profile
+      tags:
+        - user
+      security:
+        - bearerAuth: []
       responses:
         '200':
-          description: A JSON array of user names
+          description: A JSON map of user detail that contain access token that send in header as Autorization for authenticate user
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
     put:
-      summary: login
+      summary: Update Profile
+      tags:
+        - user
+      security:
+        - bearerAuth: []
+      requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/UserForm'
       responses:
         '200':
-          description: A JSON array of user names
+          description: A JSON map of user detail that contain access token that send in header as Autorization for authenticate user
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
+  '/user/send/change-password-code':
+    post:
+      summary: Send change password code
+      tags:
+        - user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phoneNumber:
+                  type: string
+      responses:
+        '202':
+          description: send request to another service for send message
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
   '/user/forget-password':
     post:
-      summary: login
+      summary: Forget Password
+      tags:
+        - user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                changePasswordCode:
+                  type: string
+                newPassword:
+                  type: string
+              required:
+                - changePasswordCode
+                - newPassword
       responses:
-        '200':
-          description: A JSON array of user names
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
   '/user/upload-picture':
     post:
-      summary: login
+      summary: Upload User Picture
+      tags:
+        - user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                picture:
+                  type: string
+                  format: binary
       responses:
-        '200':
-          description: A JSON array of user names
-  '/my-events':
+        '201':
+          description: url of picture
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
+  '/event/my-events':
     get:
-      summary: login
+      summary: My Events
+      tags:
+        - event
+      security:
+        - bearerAuth: []
       responses:
         '200':
-          description: A JSON array of user names
-  '/events':
+          description: A JSON array of event that user create or join those
+          content: 
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
+  '/event/find/{page}':
     post:
-      summary: login
+      summary: Events
+      tags:
+        - event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: path
+          required: true
+          description: The page number
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                category:
+                  type: string
+                location:
+                  type: array
+                  items:
+                    type: number
+                date:
+                  type: string
+                  format: date
       responses:
         '200':
-          description: A JSON array of user names
+          description: A JSON array of object that contain event summery detaile
+          content: 
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
   '/event':
     post:
-      summary: login
+      summary: Create Event
+      tags:
+        - event
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventForm'
       responses:
-        '200':
-          description: A JSON array of user names
-  '/event/{userId}':
-    get:
-      summary: login
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          description: The ID of the user to return.
-          schema:
-            type: integer
-            format: int64
-            minimum: 1
-      responses:
-        '200':
-          description: A JSON array of user names
-    put:
-      summary: login
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          description: The ID of the user to return.
-          schema:
-            type: integer
-            format: int64
-            minimum: 1
-      responses:
-        '200':
-          description: A JSON array of user names
-    delete:
-      summary: login
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          description: The ID of the user to return.
-          schema:
-            type: integer
-            format: int64
-            minimum: 1
-      responses:
-        '200':
-          description: A JSON array of user names
-  '/event/{userId}/members':
-    get:
-      summary: login
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          description: The ID of the user to return.
-          schema:
-            type: integer
-            format: int64
-            minimum: 1
-      responses:
-        '200':
-          description: A JSON array of user names
-  '/event/{userId}/subscribeEvent':
+        '201':
+          description: A JSON map of full event detail
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
+  '/event/upload-image':
     post:
-      summary: login
+      summary: Create Event
+      tags:
+        - event
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: url of picture
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
+  '/event/{id}':
+    get:
+      summary: Get Event
+      tags:
+        - event
+      security:
+        - bearerAuth: []
       parameters:
-        - name: userId
+        - name: id
           in: path
           required: true
-          description: The ID of the user to return.
+          description: The ID of the event to return.
           schema:
-            type: integer
-            format: int64
-            minimum: 1
+            type: string
       responses:
         '200':
-          description: A JSON array of user names
+          description: A JSON map of full event detail
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
+    put:
+      summary: Update Event
+      tags:
+        - event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the event to return.
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventForm'
+      responses:
+        '200':
+          description: A JSON map of full event detail
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
+    delete:
+      summary: Delete Event
+      tags:
+        - event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the event to return.
+          schema:
+            type: string
+      responses:
+        '204':
+          description: no content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
+  '/event/{id}/members':
+    get:
+      summary: Event Members
+      tags:
+        - event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the event to return.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A JSON array of user detail that joined to event before.
+          content: 
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Member'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
+  '/event/{id}/subscribe':
+    post:
+      summary: Subscribe
+      tags:
+        - event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the event to return.
+          schema:
+            type: string
+      responses:
+        '204':
+          description: no content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
   '/skills':
     get:
-      summary: login
+      summary: Skills
+      tags:
+        - skill
       responses:
         '200':
-          description: A JSON array of user names
-          
-    
+          description: A JSON array of available skills in database
+          content: 
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Skill'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
+components:
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+    Forbidden:
+      description: Forbidden to access this api
+      content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Bad request, maybe there is validation error
+      content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Not found target
+      content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    NotImplemented:
+      description: This api not implemented yet
+      content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    UnexpectedError:
+      description: Unexpected error.
+      content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      properties:
+        id:
+          type: string
+        fullName:
+          type: string
+        birthday:
+          type: string
+          format: date
+        height:
+          type: integer
+        weight:
+          type: integer
+        picture:
+          type: string
+        skills:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              title:
+                type: string
+              rate:
+                type: integer
+        token:
+          type: string
+    UserForm:
+      properties:
+        fistName:
+          type: string
+        lastName:
+          type: string
+        birthday:
+          type: string
+          format: date
+        height:
+          type: integer
+        weight:
+          type: integer
+        skills:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              rate:
+                type: integer
+    Event:
+      properties:
+        title:
+          type: string
+        dateTime:
+          type: string
+          format: date-time
+        location:
+          type: array
+          items:
+            type: number
+        category:
+          type: object
+          properties:
+            title:
+              type: string
+            image:
+              type: string  
+        leader:
+          type: object
+          properties:
+            fullName:
+              type: string
+            picture:
+              type: string
+        minMember:
+          type: integer
+        maxMember:
+          type: integer
+        image:
+          type: string
+        description:
+          type: string
+        minAge:
+          type: integer
+        maxAge:
+          type: integer
+        minSkill:
+          type: integer
+        maxSkill:
+          type: integer
+    EventForm:
+      properties:
+        title:
+          type: string
+        dateTime:
+          type: string
+          format: date-time
+        location:
+          type: array
+          items:
+            type: number
+        image:
+          type: string
+        categoryId:
+          type: string
+        minMember:
+          type: integer
+        maxMember:
+          type: integer
+        description:
+          type: string
+        minAge:
+          type: integer
+        maxAge:
+          type: integer
+        minSkill:
+          type: integer
+        maxSkill:
+          type: integer
+    Member:
+      properties:
+        fullName:
+          type: string
+        picture:
+          type: string
+        skill:
+          type: integer
+    Skill:
+      properties:
+        title: 
+          type: string
+        image: 
+          type: string
+    Error:
+      properties:
+        message: 
+          type: string
+        errors:
+          type: array
+          items:
+            type: string
