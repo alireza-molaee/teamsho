@@ -14,6 +14,13 @@ const userSchema = new mongoose.Schema({
         unique: true,
         required: true,
     },
+    secretCode: {
+        type: String,
+        required: true,
+        default: () => {
+            return Math.floor(Math.random()*90000) + 10000;
+        }
+    },
     firstName: {
         type: String,
         required: true,
@@ -36,6 +43,11 @@ const userSchema = new mongoose.Schema({
     },
     skills: [skillSchema]
 });
+
+userSchema.methods.renewSecretCode = function() {
+    this.secretCode = Math.floor(Math.random()*90000) + 10000;
+    return this.save();
+}
 
 const User = mongoose.model('User', userSchema);
 
