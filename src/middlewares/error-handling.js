@@ -2,7 +2,6 @@ import { MongoError } from 'mongodb';
 import { validationResult } from 'express-validator/check';
 
 export default function errorHandler (err, req, res, next) {
-    console.log('aaaaaaaaaaaaaaaaaaaaaa');
     console.error(err);
     if (err instanceof MongoError) {
         res.status(503).send({message: 'Something wrong in database!'})
