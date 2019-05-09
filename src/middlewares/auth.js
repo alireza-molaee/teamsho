@@ -1,4 +1,4 @@
-import { verifyJWTToken } from '../libs/auth';
+import { verifyJWTToken } from '../utils/auth';
 
 export default function verifyJWT_MW(req, res, next) {
     let token = null;

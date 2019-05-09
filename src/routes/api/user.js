@@ -1,11 +1,13 @@
 import express from 'express';
 import { checkSchema, check } from 'express-validator/check';
 import { handleValidationError } from '../../middlewares/error-handling';
+import authMW from '../../middlewares/auth';
 import {User, redisClient} from '../../models';
 import { verifySMS } from '../../utils/sms';
 import { HttpError } from '../../utils/error';
 import validator from 'validator';
 import { createJWToken } from '../../utils/auth';
+import path from 'path';
 
 const router = express.Router()
 
@@ -28,16 +30,16 @@ function login(req, res, next) {
     const secretCode = Math.floor(Math.random()*90000) + 10000;
     User.find({ phoneNumber })
     .then(user => {
-        if (!user) {
+        if (!user[0]) {
             throw new HttpError(`can not find user with this phone number "${phoneNumber}"`, 404);
         }
 
         const catchUser = {
-            phoneNumber: user.phoneNumber,
+            phoneNumber: user[0].phoneNumber,
             secretCode
         };
-        redisClient.hmset(`user:${user.id}`, catchUser);
-        return user;
+        redisClient.hmset(`user:${user[0].id}`, catchUser);
+        return user[0];
     })
     .then((user) => {
         verifySMS(user.phoneNumber, String(secretCode));
@@ -48,6 +50,7 @@ function login(req, res, next) {
             userId: user.id,
         });
     }).catch(err => {
+        console.log(err);
         next(err)
     })
 }
@@ -187,33 +190,138 @@ function verifyUser(req, res, next) {
     })
 }
 
-function getProfile() {
-    
+function getProfile(req, res, next) {
+    const userId = req.user.id;
+    User.findById(userId)
+    .then(user => {
+        if (!user) {
+            throw new HttpError(`can not find user with this id "${user.id}"`, 404);
+        }
+        const token = createJWToken({id: user.id ,picture: user.picture,fullName: `${user.firstName} ${user.lastName}`});
+        res.status(200).send({
+            "id": user.id,
+            "fullName": `${user.firstName} ${user.lastName}`,
+            "birthday": user.birthday,
+            "height": user.height,
+            "weight": user.weight,
+            "picture": user.picture,
+            "skills": user.skills,
+            "token": token
+        });
+    })
+    .catch(err => {
+        if (err.name === "MongoError" && err.code === 11000) {
+            next(new HttpError('this user registered before', 409));
+        } else {
+            next(err)
+        }
+    });
 }
 
-function updateProfile() {
-
+const updateProfileSchema = {
+    firstName: {
+        isString: true,
+        trim: true,
+    },
+    lastName: {
+        isString: true,
+        trim: true,
+    },
+    birthday: {
+        isString: true,
+        isISO8601: true,
+        trim: true,
+        toDate: true,
+    },
+    height: {
+        isNumeric: true,
+    },
+    weight: {
+        isNumeric: true,
+    },
+    skills: {
+        isArray: true,
+    }
 }
 
-function uploadPicture() {
+function updateProfile(req, res) {
+    const userId = req.user.id;
+    let updateData = Object.entries(res.body).filter(item => {
+        return (item[1] !== null && item[1] !== undefined);
+    });
+    updateData = updateData.reduce((data, item) => {
+        data[item[0]] = item[1];
+        return data;
+    }, {});
+    User.findByIdAndUpdate(userId, updateData)
+    .exec()
+    .then(user => {
+        if (!user) {
+            throw new HttpError(`can not find user with this id "${user.id}"`, 404);
+        }
+        const token = createJWToken({id: user.id ,picture: user.picture,fullName: `${user.firstName} ${user.lastName}`});
+        res.status(200).send({
+            "id": user.id,
+            "fullName": `${user.firstName} ${user.lastName}`,
+            "birthday": user.birthday,
+            "height": user.height,
+            "weight": user.weight,
+            "picture": user.picture,
+            "skills": user.skills,
+            "token": token
+        });
+    })
+    .catch(err => {
+        if (err.name === "MongoError" && err.code === 11000) {
+            next(new HttpError('this user registered before', 409));
+        } else {
+            next(err)
+        }
+    });
+}
 
+function uploadPicture(req, res) {
+    const picture = req.files.picture;
+    if (!picture) {
+        throw new HttpError('picture not exist in body', 400);
+    }
+    if (!/image\/*/i.test(picture.mimetype)) {
+        throw new HttpError('incorrect file type', 400);
+    }
+    const fileName = picture.md5 + path.extname(picture.name);
+    picture.mv(path.join('uploads', 'user-picture', fileName));
+    res.status(201).send({
+        url: path.join(req.headers.host, 'static', 'user-picture', fileName)
+    })
 }
 
 
 router.post('/login', [
     checkSchema(loginSchema),
     handleValidationError,
-], login)
+], login);
 
 router.post('/register', [
     checkSchema(registerSchema),
     handleValidationError,
-], register)
+], register);
 
 router.post('/confirm', [
     checkSchema(verifyUserSchema),
     handleValidationError,
-], verifyUser)
+], verifyUser);
+
+router.get('/profile', authMW, getProfile);
+
+router.put('/profile', [
+    authMW,
+    checkSchema(updateProfileSchema),
+    handleValidationError,
+],updateProfile);
+
+router.post('/upload-picture', [
+    authMW,
+], uploadPicture)
 
 export default router;
 
