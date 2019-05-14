@@ -1,8 +1,8 @@
-import {User, redisClient} from '../../models';
-import { verifySMS } from '../../utils/sms';
-import { HttpError } from '../../utils/error';
+import {User, redisClient} from '../../../models';
+import { verifySMS } from '../../../utils/sms';
+import { HttpError } from '../../../utils/error';
 import validator from 'validator';
-import { createJWToken } from '../../utils/auth';
+import { createJWToken } from '../../../utils/auth';
 import path from 'path';
 
 export function login(req, res, next) {

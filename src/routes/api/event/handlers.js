@@ -1,4 +1,4 @@
-import { Category, Event, Enrollment } from '../../models';
+import { Category, Event, Enrollment } from '../../../models';
 import moment from 'moment-jalaali';
 
 export function getMyEvents(req, res, next) {

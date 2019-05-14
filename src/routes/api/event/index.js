@@ -1,7 +1,7 @@
 import express from 'express';
 import { checkSchema, check } from 'express-validator/check';
-import { handleValidationError } from '../../middlewares/error-handling';
-import authMW from '../../middlewares/auth';
+import { handleValidationError } from '../../../middlewares/error-handling';
+import authMW from '../../../middlewares/auth';
 
 import {
     createEvent,
@@ -64,3 +64,5 @@ router.get('/members', [
 router.post('/subscribe', [
     authMW,
 ], subscribe);
+
+export default router;
