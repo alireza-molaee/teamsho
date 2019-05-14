@@ -20,8 +20,6 @@ const eventSchema = new mongoose.Schema({
     maxAge: Number,
 });
 
-console.log(eventSchema);
-
 eventSchema.index({ "location": "2dsphere" });
 
 const Event = mongoose.model('Event', eventSchema);

@@ -1,5 +1,6 @@
 import { Category, Event, Enrollment } from '../../../models';
 import moment from 'moment-jalaali';
+import mongoose from 'mongoose';
 
 export function getMyEvents(req, res, next) {
     const userId = req.user.id;
@@ -76,7 +77,34 @@ export function uploadImage(req, res, next) {
 }
 
 export function getEvent(req, res, next) {
-    res.status(501).send('not implemented yet')
+    const eventId = req.params.id;
+    Event.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(eventId)
+            }
+        },
+        {
+            $lookup: {
+                from: "categories",
+                localField: "categoryId",
+                foreignField: "_id",
+                as: "fromCategory"
+            }
+        },
+        {
+            $replaceRoot: { newRoot: { $mergeObjects: [ {category: { $arrayElemAt: [ "$fromCategory", 0 ] }}, "$$ROOT" ] } }
+        },
+        {
+            $project: { fromCategory: 0, categoryId: 0, "category._id": 0 }
+        }
+    ])
+    .then(result => {
+        res.status(200).send(result);
+    })
+    .catch(err => {
+        next(err)
+    })
 }
 
 export function updateEvent(req, res, next) {
