@@ -190,6 +190,6 @@ export function uploadPicture(req, res) {
     const fileName = picture.md5 + path.extname(picture.name);
     picture.mv(path.join('uploads', 'user-picture', fileName));
     res.status(201).send({
-        url: path.join(req.headers.host, 'static', 'user-picture', fileName)
+        url: path.join(req.headers.host, 'uploads', 'user-picture', fileName)
     })
 }

@@ -73,7 +73,18 @@ export function createEvent(req, res, next) {
 }
 
 export function uploadImage(req, res, next) {
-    res.status(501).send('not implemented yet')
+    const image = req.files.image;
+    if (!picture) {
+        throw new HttpError('picture not exist in body', 400);
+    }
+    if (!/image\/*/i.test(image.mimetype)) {
+        throw new HttpError('incorrect file type', 400);
+    }
+    const fileName = image.md5 + path.extname(image.name);
+    picture.mv(path.join('uploads', 'event-images', fileName));
+    res.status(201).send({
+        url: path.join(req.headers.host, 'uploads', 'event-images', fileName)
+    })
 }
 
 export function getEvent(req, res, next) {
