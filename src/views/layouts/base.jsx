@@ -11,6 +11,7 @@ class Base extends React.Component {
             <link rel="shortcut icon" href="/static/images/favicon.png" />
             <link rel="stylesheet" href="/static/css/materialdesignicons.min.css" />
             <link rel="stylesheet" href="/static/css/style.css" />
+            <link rel="stylesheet" href="/static/css/table.css" />
         </head>
         <body>
             {this.props.children}

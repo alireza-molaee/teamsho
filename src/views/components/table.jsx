@@ -20,7 +20,7 @@ export default class Table extends Component {
 
     render() {
         return (
-            <table>
+            <table className="fl-table">
                 <thead>
                     <tr>
                         {this.renderColumns()}

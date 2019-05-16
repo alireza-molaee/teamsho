@@ -18,15 +18,11 @@ export default class Panel extends Component {
         return (
             <Base title={this.props.page.title || ''}>
                 <div class="body-wrapper">
-                    <Sidebar items={defaultItems} />
+                    <Sidebar items={this.props.sidebar.items} />
                     <Header />
                     <div class="page-wrapper mdc-toolbar-fixed-adjust">
                         <main class="content-wrapper">
-                            <div class="mdc-layout-grid">
-                                <div class="mdc-layout-grid__inner">
-                                    {this.props.children}
-                                </div>
-                            </div>
+                            {this.props.children}
                         </main>
                         <Footer />
                     </div>
