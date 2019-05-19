@@ -9,6 +9,28 @@ export function getMyEvents(req, res, next) {
         return res;
     })
     .then(events => {
+        return Event.populate(events, { path: 'categoryId', model: 'Category' })
+    })
+    .then(events => {
+        return events.map(item => ({
+            "id": item._id,
+            "title": item.title,
+            "description": item.description,
+            "image": item.image,
+            "dateTime": item.dateTime,
+            "category": {
+                "title": item.categoryId.title,
+                "image": item.categoryId.image
+            },
+            "minMember": item.minMember,
+            "maxMember": item.maxMember,
+            "minAge": item.minAge,
+            "maxAge": item.maxAge,
+            "minSkill": item.minSkill,
+            "maxSkill": item.maxSkill,
+        }))
+    })
+    .then(events => {
         res.status(200).send(events);
     })
     .catch(err => {
@@ -69,7 +91,53 @@ export function find(req, res, next) {
 }
 
 export function createEvent(req, res, next) {
-    res.status(501).send('not implemented yet')
+    const data = req.body;
+    Event.create({
+        title: data['title'],
+        description: data['description'],
+        dateTime: moment(data['dateTime']).toDate(),
+        location: {
+            type: 'Point',
+            coordinates: [data['location']['lat'], data['location']['long']]
+        },
+        leader: req.user.id,
+        categoryId: data['categoryId'],
+        image: data['image'],
+        minMember: data['minMember'],
+        maxMember: data['maxMember'],
+        minAge: data['minAge'],
+        maxAge: data['maxAge'],
+        minSkill: data['minSkill'],
+        maxSkill: data['maxSkill'],
+    })
+    .then(result => {
+        return Event.populate(result, {path: 'categoryId', model: 'Category'})
+    })
+    .then(result => {
+        res.status(200).send({
+            "id": result._id,
+            "title": result.title,
+            "description": result.description,
+            "dateTime": result.dateTime,
+            "location": {
+                "lat": result.location.coordinates[0],
+                "long": result.location.coordinates[1]
+            },
+            "category": {
+                "title": result.categoryId.title,
+                "image": result.categoryId.image
+            },
+            "image": result.image,
+            "minMember": result.minMember,
+            "maxMember": result.maxMember,
+            "minAge": result.minAge,
+            "maxAge": result.maxAge,
+            "minSkill": result.minSkill,
+            "maxSkill": result.maxSkill
+        })
+    }).catch(err => {
+        next(err)
+    })
 }
 
 export function uploadImage(req, res, next) {
@@ -119,7 +187,7 @@ export function getEvent(req, res, next) {
 }
 
 export function updateEvent(req, res, next) {
-    res.status(501).send('not implemented yet')
+    
 }
 
 export function deleteEvent(req, res, next) {
