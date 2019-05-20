@@ -37,18 +37,18 @@ paths:
               properties:
                 phoneNumber:
                   type: string
-                password:
-                  type: string
               required:
                 - phoneNumber
-                - password
       responses:
         '200':
           description: A JSON map of user detail that contain access token that send in header as Autorization for authenticate user
           content: 
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  userId:
+                    type: string
         '400':
           $ref: '#/components/responses/BadRequest'
         '403':
@@ -195,57 +195,6 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
-        '500':
-          $ref: '#/components/responses/UnexpectedError'
-        '501':
-          $ref: '#/components/responses/NotImplemented'
-  '/user/send/change-password-code':
-    post:
-      summary: Send change password code
-      tags:
-        - user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                phoneNumber:
-                  type: string
-      responses:
-        '202':
-          description: send request to another service for send message
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/UnexpectedError'
-        '501':
-          $ref: '#/components/responses/NotImplemented'
-  '/user/forget-password':
-    post:
-      summary: Forget Password
-      tags:
-        - user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                changePasswordCode:
-                  type: string
-                newPassword:
-                  type: string
-              required:
-                - changePasswordCode
-                - newPassword
-      responses:
-        '204':
-          description: No content
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '500':
           $ref: '#/components/responses/UnexpectedError'
         '501':
@@ -578,7 +527,7 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
         '501':
           $ref: '#/components/responses/NotImplemented'
-  '/skills':
+  '/category':
     get:
       summary: Skills
       tags:
@@ -735,9 +684,12 @@ components:
           type: string
           format: date-time
         location:
-          type: array
-          items:
-            type: number
+          type: object
+          properties:
+            lat:
+              type: string
+            long:
+              type: string
         image:
           type: string
         categoryId:
