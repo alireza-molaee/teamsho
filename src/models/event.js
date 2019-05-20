@@ -1,5 +1,13 @@
 import mongoose from 'mongoose';
 
+const enrollmentSchema = new mongoose.Schema({
+    joinAt: {
+        type: Date,
+        required: true,
+    },
+    userId: mongoose.Schema.Types.ObjectId,
+});
+
 const eventSchema = new mongoose.Schema({
     title: String,
     dateTime: Date,
@@ -35,6 +43,7 @@ const eventSchema = new mongoose.Schema({
         min: 0,
         max: 4
     },
+    members: [enrollmentSchema]
 });
 
 eventSchema.index({ "location": "2dsphere" });

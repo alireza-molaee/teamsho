@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import Redis from 'ioredis';
 
 import Category from './category';
-import Enrollment from './enrollment';
 import Event from './event';
 import User from './user';
 
@@ -12,4 +11,4 @@ const connectDb = () => {
     return mongoose.connect(process.env.DATABASE_URL);
 };
 
-export { connectDb, redisClient, User, Category, Event, Enrollment };
+export { connectDb, redisClient, User, Category, Event };

@@ -186,11 +186,20 @@ export const createEventSchema = {
 
 export const updateEventSchema = {
     title: {
+        exists: {
+            option: {
+                checkNull: true,
+            }
+        },
         isString: true,
         trim: true,
     },
     dateTime: {
-        // isString: true,
+        exists: {
+            option: {
+                checkNull: true,
+            }
+        },
         isISO8601: true,
         customSanitizer: {
             options: (value) => {
@@ -198,12 +207,22 @@ export const updateEventSchema = {
             }
         },
     },
-    location: {
-        isArray: true,
+    'location.lat': {
+        exists: {
+            option: {
+                checkNull: true,
+            }
+        },
+        isFloat: true,
+        trim: true,
     },
-    'location.*': { 
-        isString: true,
-        isLatLong: true,
+    'location.long': {
+        exists: {
+            option: {
+                checkNull: true,
+            }
+        },
+        isFloat: true,
         trim: true,
     },
     image: {
@@ -211,19 +230,36 @@ export const updateEventSchema = {
         trim: true,
     },
     categoryId: {
+        exists: {
+            option: {
+                checkNull: true,
+            }
+        },
         isString: true,
         isMongoId: true,
         trim: true,
+        custom: {
+            options: (value) => {
+                return Category.findById(value).count()
+                .then(count => {
+                    if (!count) {
+                        return Promise.reject('this category not exist');
+                    }
+                })
+            }
+        },
     },
     minMember: {
         isInt: true,
         custom: {
             options: (value, { req }) => {
-              if (req.body.maxMember && req.body.maxMember <= value) {
-                throw new Error('min member must be lower than max member');
-              }
+                if (req.body.maxMember && req.body.maxMember <= value) {
+                    throw new Error('min member must be lower than max member');
+                }
+                return true
             }
         },
+        toInt: true
     },
     maxMember: {
         isInt: true,
@@ -232,8 +268,10 @@ export const updateEventSchema = {
               if (req.body.minMember && req.body.minMember >= value) {
                 throw new Error('max member must be greater than min member');
               }
+              return true
             }
         },
+        toInt: true
     },
     minAge: {
         isInt: true,
@@ -242,8 +280,10 @@ export const updateEventSchema = {
               if (req.body.maxAge && req.body.maxAge <= value) {
                 throw new Error('min age must be lower than max age');
               }
+              return true
             }
         },
+        toInt: true
     },
     maxAge: {
         isInt: true,
@@ -252,27 +292,43 @@ export const updateEventSchema = {
               if (req.body.minAge && req.body.minAge >= value) {
                 throw new Error('max age must be greater than min age');
               }
+              return true              
             }
         },
+        toInt: true
     },
     minSkill: {
-        isInt: true,
+        isInt: {
+            options: { 
+                min: 0,
+                max: 4
+            }
+        },
         custom: {
             options: (value, { req }) => {
               if (req.body.maxSkill && req.body.maxSkill <= value) {
                 throw new Error('min skill must be lower than max skill');
               }
+              return true
             }
         },
+        toInt: true
     },
     maxSkill: {
-        isInt: true,
+        isInt: {
+            options: { 
+                min: 0,
+                max: 4
+            }
+        },
         custom: {
             options: (value, { req }) => {
               if (req.body.minSkill && req.body.minSkill >= value) {
                 throw new Error('max skill must be greater than min skill');
               }
+              return true
             }
         },
+        toInt: true
     }
 }
