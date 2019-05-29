@@ -12,8 +12,6 @@ COPY ./openapi.yaml ./openapi.yaml
 
 RUN mkdir /uploads
 
-VOLUME /uploads
-
 EXPOSE 8080
 
 CMD [ "node", "./index.js" ]
