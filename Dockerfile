@@ -1,12 +1,16 @@
 FROM node:10
 
+RUN npm install pm2 -g
+
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci --only=production
+RUN npm install
 
-COPY ./build .
+COPY . .
+
+RUN npm run build
 
 COPY ./openapi.yaml ./openapi.yaml
 
@@ -14,4 +18,4 @@ RUN mkdir /uploads
 
 EXPOSE 8080
 
-CMD [ "node", "./index.js" ]
+CMD [ "pm2", "start", "./build/index.js" ]
