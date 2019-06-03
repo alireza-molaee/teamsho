@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon --watch src index.js",
-    "build": "npx babel src --out-dir build --source-maps",
+    "build": "npx babel src --out-dir build --source-maps && cp -r ./src/views ./build/views",
     "serve": "node build/index.js",
     "seed": "node ./data/index.js"
   },
