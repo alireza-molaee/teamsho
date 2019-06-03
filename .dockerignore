@@ -1,2 +1,7 @@
 node_modules
+uploads
+nginx.conf
 npm-debug.log
+.git
+.gitignore
+build
