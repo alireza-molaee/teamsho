@@ -1,4 +1,4 @@
-FROM node:10
+FROM keymetrics/pm2:latest-alpine
 
 WORKDIR /app
 
@@ -10,10 +10,8 @@ COPY . .
 
 RUN npm run build
 
-COPY ./openapi.yaml ./openapi.yaml
-
 RUN mkdir /uploads
 
 EXPOSE 8080
 
-CMD [ "node", "./build/index.js" ]
+CMD [ "pm2-runtime", "./build/index.js" ]

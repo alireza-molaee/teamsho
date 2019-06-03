@@ -5,7 +5,6 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DEBUG=false
       - NODE_ENV=production
       - MORGAN_LOG=dev
       - DATABASE_URL=mongodb://mongo:27017/teamsho
@@ -19,14 +18,18 @@ services:
     depends_on: 
       - redis
       - mongo
+    volumes:
+      - upload:/app/uploads
     networks:
       - app-network
       - db-network
       
   mongo:
     image: 'mongo'
+    volumes:
+      - data-mongo:/data/db
     networks:
-      - db-network 
+      - db-network
 
   redis:
     image: 'redis'
@@ -46,6 +49,9 @@ services:
     networks:
       - app-network 
 
+volumes:
+  data-mongo:
+  upload:
 
 networks:
   app-network:

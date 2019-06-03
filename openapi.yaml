@@ -14,16 +14,17 @@ externalDocs:
   url: 'http://swagger.io'
 servers:
 # Added by API Auto Mocking Plugin
+  - description: Production server
+    url: http://team-sho.ir/ 
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/alirezamolaii/teamsho/1.0.0
-  - url: 'https://petstore.swagger.io/v2'
-  - url: 'http://petstore.swagger.io/v2'
+
 tags:
   - name: user
   - name: event
   - name: skill
 paths:  
-  '/user/login':
+  '/api/user/login':
     post:
       summary: Login
       tags:
@@ -57,7 +58,7 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
         '501':
           $ref: '#/components/responses/NotImplemented'
-  '/user/register':
+  '/api/user/register':
     post:
       summary: Register
       tags:
@@ -95,7 +96,7 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
         '501':
           $ref: '#/components/responses/NotImplemented'
-  '/user/confirm':
+  '/api/user/confirm':
     post:
       summary: Confirm User
       tags:
@@ -129,7 +130,7 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
         '501':
           $ref: '#/components/responses/NotImplemented'
-  '/user/send/confirm-code':
+  '/api/user/send/confirm-code':
     post:
       summary: Send confirmation code
       tags:
@@ -152,7 +153,7 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
         '501':
           $ref: '#/components/responses/NotImplemented'
-  '/user/profile':
+  '/api/user/profile':
     get:
       summary: Get Profile
       tags:
@@ -199,7 +200,7 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
         '501':
           $ref: '#/components/responses/NotImplemented'
-  '/user/upload-picture':
+  '/api/user/upload-picture':
     post:
       summary: Upload User Picture
       tags:
@@ -234,7 +235,7 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
         '501':
           $ref: '#/components/responses/NotImplemented'
-  '/event/my-events':
+  '/api/event/my-events':
     get:
       summary: My Events
       tags:
@@ -256,7 +257,7 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
         '501':
           $ref: '#/components/responses/NotImplemented'
-  '/event/find/{page}':
+  '/api/event/find/{page}':
     post:
       summary: Events
       tags:
@@ -309,7 +310,7 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
         '501':
           $ref: '#/components/responses/NotImplemented'
-  '/event':
+  '/api/event':
     post:
       summary: Create Event
       tags:
@@ -337,7 +338,7 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
         '501':
           $ref: '#/components/responses/NotImplemented'
-  '/event/upload-image':
+  '/api/event/upload-image':
     post:
       summary: Create Event
       tags:
@@ -372,7 +373,7 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
         '501':
           $ref: '#/components/responses/NotImplemented'
-  '/event/{id}':
+  '/api/event/{id}':
     get:
       summary: Get Event
       tags:
@@ -467,7 +468,7 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
         '501':
           $ref: '#/components/responses/NotImplemented'
-  '/event/{id}/members':
+  '/api/event/{id}/members':
     get:
       summary: Event Members
       tags:
@@ -500,7 +501,7 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
         '501':
           $ref: '#/components/responses/NotImplemented'
-  '/event/{id}/subscribe':
+  '/api/event/{id}/subscribe':
     post:
       summary: Subscribe
       tags:
@@ -527,7 +528,7 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
         '501':
           $ref: '#/components/responses/NotImplemented'
-  '/category':
+  '/api/category':
     get:
       summary: Skills
       tags:
