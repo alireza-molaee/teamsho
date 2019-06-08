@@ -1,4 +1,4 @@
-require('dotenv').config();
+// require('dotenv').config();
 require("@babel/register");
 const fs = require('fs');
 const path = require('path');
