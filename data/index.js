@@ -54,7 +54,7 @@ fs.readdir(path.join(__dirname, '../src/models'), (err, files) => {
                         fields: data,
                         db: process.env.DATABASE_NAME,
                         collection: collectionName,
-                        host: 'localhost:27017',
+                        host: `${process.env.DATABASE_HOST}:${process.env.DATABASE_PORT}`,
                         callback: (err, db) => {
                             if (err) {
                                 console.error(err);
