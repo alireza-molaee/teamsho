@@ -11,7 +11,7 @@ const app = express();
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'mustache');
-app.engine("mustache", mustacheExpress());
+app.engine("mustache", mustacheExpress(__dirname + '/views' + '/partials', '.mustache'));
 app.use(morgan(process.env.MORGAN_LOG));
 app.use(bodyParser.json());
 app.use(fileUpload({
