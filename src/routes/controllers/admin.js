@@ -7,6 +7,7 @@ const entities = [
     {
         slug: 'user',
         title: 'User',
+        icon: 'users',
         fields: {
             firstName: {
                 type: 'text',
@@ -72,8 +73,15 @@ router.get('/:entitySlug/:page', (req, res) => {
     const items = paginatedData.items.map(item => {
         const props = [];
         Object.keys(item).forEach(key => {
-            if (key !== '_id')
-            props.push({type: entityData.fields[key], value: item[key]})
+            if (key !== '_id') {
+                const thisFieldType = entityData.fields[key];
+                props.push({
+                    value: item[key],
+                    isText: thisFieldType === 'text',
+                    isBoolean: thisFieldType === 'bool',
+                    isLink: thisFieldType === 'link',
+                });
+            }
         });
         return {
             id: item._id,
@@ -157,53 +165,6 @@ router.get('/:entitySlug/:page', (req, res) => {
         items,
         pages
     });
-})
-
-router.get('/users', (req, res) => {
-    const schema = User.schema.obj;
-    const itemPerPage = 10;
-    const page = req.query.page || 1;
-    const selectObj = listViewFields.reduce((pre, item) => {
-        pre[item] = 1
-        return pre;
-    }, {});
-    const rowsPromise = targetModel.find().select(selectObj).skip(itemPerPage * (page - 1)).limit(itemPerPage);
-    const columns = listViewFields.map(item => {
-        return {
-            key: item,
-            name: camel2Text(item)
-        }
-    });
-
-    rowsPromise.then(rows => {
-        res.render('admin/user-list', { 
-            page: {title: 'salam'},
-            navItems: [
-                {
-                    title: "users",
-                    icon: "perm_identity",
-                    link: "/admin/users"
-                },
-                {
-                    title: "categories",
-                    icon: "perm_identity",
-                    link: "/admin/categories"
-                },
-                {
-                    title: "events",
-                    icon: "perm_identity",
-                    link: "/admin/events"
-                },
-                {
-                    title: "subscriptions",
-                    icon: "perm_identity",
-                    link: "/admin/subscriptions"
-                }
-            ],
-            rows,
-            columns
-        });
-    })
-})
+});
 
 export default router;

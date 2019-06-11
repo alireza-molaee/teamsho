@@ -1250,8 +1250,6 @@
 
 })(jQuery);
 
-
-
 (function ($) {
     // USE STRICT
     "use strict";
@@ -1668,3 +1666,7 @@
   }
 
 })(jQuery);
+
+$(function () {
+  $('[data-toggle="popover"]').popover()
+})

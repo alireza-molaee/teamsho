@@ -35,7 +35,7 @@
                                             <div class="dropDownSelect2"></div>
                                         </div>
                                     </div>
-                                    <div class="table-responsive">
+                                    <div class="table-responsive table-data">
                                         <table class="table">
                                             <thead>
                                                 <tr>
@@ -66,9 +66,16 @@
                                                     </td>
                                                     {{/props}}
                                                     <td>
-                                                        <span class="more">
-                                                            <i class="zmdi zmdi-more"></i>
-                                                        </span>
+                                                        <div class="dropleft">
+                                                            <button class="more" type="button" id="moreButtonDropDown-{{id}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                <i class="zmdi zmdi-more"></i>
+                                                            </button>
+                                                            <div class="dropdown-menu" aria-labelledby="moreButtonDropDown-{{id}}">
+                                                                <a class="dropdown-item" href="#">edit</a>
+                                                                <a class="dropdown-item" href="#">delete</a>
+                                                                <a class="dropdown-item" href="#"></a>
+                                                            </div>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 {{/items}}
