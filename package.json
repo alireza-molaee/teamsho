@@ -8,7 +8,9 @@
     "start": "nodemon --watch src index.js",
     "build": "npx babel src --out-dir build --source-maps && cp -r ./src/views ./build/views",
     "serve": "node build/index.js",
-    "seed": "node ./data/index.js"
+    "seed": "node ./data/index.js",
+    "admin:init": "node ./scripts/make-admin-db.js",
+    "admin:add-user": "node ./scripts/add-user-to-admin.js"
   },
   "keywords": [
     "team",
@@ -20,12 +22,16 @@
   "author": "alirezamolaii@gmail.com",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^3.0.6",
     "body-parser": "^1.18.3",
     "chalk": "^2.4.2",
+    "cookie-parser": "^1.4.4",
     "dotenv": "^7.0.0",
     "express": "^4.16.4",
     "express-fileupload": "^1.1.4",
+    "express-session": "^1.16.2",
     "express-validator": "^5.3.1",
+    "inquirer": "^6.3.1",
     "ioredis": "^4.9.0",
     "jsonwebtoken": "^8.5.1",
     "kavenegar": "^1.1.4",
@@ -37,6 +43,7 @@
     "mustache-express": "^1.2.8",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "sqlite3": "^4.0.9",
     "swagger-ui-express": "^4.0.4",
     "yamljs": "^0.3.0"
   },
