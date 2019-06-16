@@ -58,6 +58,23 @@ const entities = [
             }
         },
         listViewFields: ['firstName', 'lastName', 'phoneNumber'],
+        listViewActions: [
+            {
+                id: 'delete-all',
+                title: 'delete all',
+            },
+            {
+                id: 'confirm-all',
+                title: 'confirm all',
+            },
+            {
+                id: 'suspend-all',
+                title: 'suspend all',
+            }
+        ],
+        onTriggerAction: (actionId, selectedItems) => {
+
+        },
         getListItems: (page, filters) => {
           return {
               items: [
@@ -153,10 +170,14 @@ router.get('/:entitySlug/:page', checkUserLogin, (req, res) => {
         })
     }
 
-    res.render('admin/list-view', { 
+    res.render('admin/list-view', {
+        baseUrl: req.baseUrl,
         page: {
-            title: 'salam'
+            title: `Admin - ${entityData.title}`,
         },
+        entitySlug: req.params.entitySlug,
+        title: entityData.title,
+        icon: entityData.icon,
         breadcrumb: [
             {
                 title: 'Dashboard',
@@ -197,11 +218,31 @@ router.get('/:entitySlug/:page', checkUserLogin, (req, res) => {
             }
         ],
         addItemLink: '/add',
+        actions: entityData.listViewActions,
         headers,
         items,
-        pages
+        pages,
+        currentPage,
     });
 });
+
+router.post('/:entitySlug/actions', (req, res) => {
+    const entityData = entities.find(item => item.slug === req.params.entitySlug);
+    const { action, selectedItems } = req.body;
+    const result = entityData.onTriggerAction(action, selectedItems);
+    if (result instanceof Promise) {
+        result
+        .then(() => {
+            res.redirect(`/admin/${req.params.entitySlug}/1`);       
+        })
+        .catch((err) => {
+            res.status(500);
+            res.send(err.message)
+        })
+    } else {
+        res.redirect(`/admin/${req.params.entitySlug}/1`);
+    }
+})
 
 router.get('/', function (req, res) {
     if (req.session.user && req.cookies.user_sid) {
@@ -221,7 +262,6 @@ router.get('/login', (req, res) => {
 
 router.post('/login', function(req, res) {
     const {email, password, remember} = req.body;
-
     
     db.get(`SELECT rowid AS id, email, name, password FROM user WHERE email="${email}"`, function(err, row) {
         if (err) {

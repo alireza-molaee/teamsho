@@ -16,7 +16,8 @@ export function login(req, res, next) {
 
         const catchUser = {
             phoneNumber: user[0].phoneNumber,
-            secretCode
+            tryCounter: 0,
+            secretCode,
         };
         redisClient.hmset(`user:${user[0].id}`, catchUser);
         return user[0];
@@ -73,13 +74,16 @@ export function verifyUser(req, res, next) {
     .then((redisRes) => {
         const catchUser = redisRes[0][1];
         if (!catchUser.secretCode) {
-            throw new HttpError('secret code not set', 428); 
+            throw new HttpError('secret code not set or expired', 428); 
         }
         if (Number(catchUser.secretCode) !== Number(secretCode)) {
-            redisClient.del(`user:${userId}`);
+            if (catchUser.tryCounter < 4) {
+                redisClient.hmset(`user:${userId}`, {...catchUser, tryCounter: catchUser.tryCounter + 1});
+            } else {
+                redisClient.del(`user:${userId}`);
+            }
             throw new HttpError('wrong code', 401); 
         }
-
         if (isSavedUser) {
             return User.findById(userId);
         } else {
