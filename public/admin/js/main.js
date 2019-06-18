@@ -1670,3 +1670,13 @@
 $(function () {
   $('[data-toggle="popover"]').popover()
 })
+
+$(function () {
+  $('[name="selectedAll"]').click(function() {
+    $('[name="selectedItems"]').prop("checked", this.checked);
+  });
+});
+
+$(function () {
+  $('#joinAt-datepicker').datetimepicker('format', 'YYYY/MM/DD HH:mm');
+});
