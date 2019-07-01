@@ -6,8 +6,7 @@ import * as sqlite from 'sqlite3';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import moment from 'moment';
-import { User, Category } from '../../models';
-import camel2Text from '../../utils/camelToNormalText';
+import { entities } from './admin-data';
 
 const sqlite3 = sqlite.verbose();
 const db = new sqlite3.Database('admin-db');
@@ -39,263 +38,91 @@ router.use((req, res, next) => {
     next();
 });
 
-const entities = [
-    {
-        slug: 'user',
-        title: 'User',
-        icon: 'users',
-        fields: {
-            firstName: {
-                type: 'text',
-                title: 'First Name'
-            },
-            lastName: {
-                type: 'long-text',
-                title: 'Last Name'
-            },
-            phoneNumber: {
-                type: 'number',
-                title: 'Phone Number'
-            },
-            isActive: {
-                type: 'bool',
-                title: 'Is Active',
-            },
-            joinAt: {
-                type: 'date',
-                title: 'Join At',
-                options: {
-                    format: 'YYYY/MM/DD HH:mm',
-                }
-            },
-            role: {
-                type: 'enum',
-                title: 'Role',
-                options: {
-                    map: {
-                        'admin': 'Admin',
-                        'manager': 'Manager',
-                        'manager-assistant': 'Manager Assistant',
-                    },
-                    inputType: 'radio-inline',
-                }
-            },
-            permissions: {
-                type: 'multi-enum',
-                title: 'Permissions',
-                options: {
-                    map: {
-                        'admin': 'Admin',
-                        'manager': 'Manager',
-                        'manager-assistant': 'Manager Assistant',
-                    },
-                    inputType: 'check-box-inline',
-                }
-            },
-            picture: {
-                type: 'file',
-                title: 'Picture',
-                options: {
+const makeNavItems = (req, res, next) => {
+    const navItems = entities.map(item => ({
+        link: `/admin/${item.slug}/1`,
+        title: item.title,
+        icon: item.icon,
+    }));
+    req.navItems = navItems;
+    next();
+}
 
-                }
-            }
-        },
-        listViewFields: ['firstName', 'lastName', 'phoneNumber', 'isActive', 'joinAt', 'role', 'permissions', 'picture'],
-        listViewActions: [
-            {
-                id: 'delete-all',
-                title: 'delete all',
-            },
-            {
-                id: 'confirm-all',
-                title: 'confirm all',
-            },
-            {
-                id: 'suspend-all',
-                title: 'suspend all',
-            }
-        ],
-        onTriggerAction: (actionId, selectedItems) => {
+router.get('/', function (req, res) {
+    if (req.session.user && req.cookies.user_sid) {
+        res.redirect('/admin/dashboard');
+    } else {
+        res.redirect('/admin/login');
+    }   
+})
 
-        },
-        getListItems: (page, filters) => {
-          return {
-              items: [
-                {
-                    _id: '1',
-                    firstName: 'علیرضا',
-                    lastName: 'مولایی مولایی مولایی مولایی مولایی مولایی مولایی مولاییمولایی',
-                    phoneNumber: '09121010101',
-                    isActive: true,
-                    joinAt: new Date(),
-                    role: 'admin',
-                    permissions: ['admin', 'manager'],
-                    picture: 'http://lorempixel.com/200/200/people/'
-                },
-                {
-                    _id: '2',
-                    firstName: 'علیرضا',
-                    lastName: 'مولایی',
-                    phoneNumber: '09121010101',
-                    isActive: true,
-                    joinAt: new Date(),
-                    role: 'admin',
-                    permissions: ['admin', 'manager'],
-                    picture: 'http://lorempixel.com/200/200/people/'
-                },
-                {
-                    _id: '3',
-                    firstName: 'علیرضا',
-                    lastName: 'مولایی',
-                    phoneNumber: '09121010101',
-                    isActive: false,
-                    joinAt: new Date(),
-                    role: 'admin',
-                    permissions: ['admin', 'manager'],
-                    picture: 'http://lorempixel.com/200/200/people/'
-                },
-                {
-                    _id: '4',
-                    firstName: 'علیرضا',
-                    lastName: 'مولایی',
-                    phoneNumber: '09121010101',
-                    isActive: false,
-                    joinAt: new Date(),
-                    role: 'admin',
-                    permissions: ['admin', 'manager'],
-                    picture: 'http://lorempixel.com/200/200/people/'
-                },
-                {
-                    _id: '5',
-                    firstName: 'علیرضا',
-                    lastName: 'مولایی',
-                    phoneNumber: '09121010101',
-                    isActive: true,
-                    joinAt: new Date(),
-                    role: 'admin',
-                    permissions: ['admin', 'manager'],
-                    picture: 'http://lorempixel.com/200/200/people/'
-                }
-              ],
-              totalPage: 6, 
-          }  
-        },
-
+router.get('/login', (req, res) => {
+    if (req.session.user && req.cookies.user_sid) {
+        res.redirect('/admin/user/1');
+    } else {
+        res.render('admin/login', {});
     }
-]
+})
 
+router.post('/login', function(req, res) {
+    const {email, password, remember} = req.body;
+    
+    db.get(`SELECT rowid AS id, email, name, password FROM user WHERE email="${email}"`, function(err, row) {
+        if (err) {
+            res.status(500);
+        } else {
+            if (!row) {
+                res.redirect('/admin/login');
+            } else {
+                bcrypt.compare(password, row.password, function(err, ok) {
+                    if (err) {
+                        res.status(500);
+                    } else {
+                        if (ok) {
+                            req.session.user = row;
+                            res.redirect('/admin');
+                        } else {
+                            res.redirect('/admin/login');                                
+                        }
+                    }
+                    db.close();
+                })
+            }
+        }
+    });
+})
 
-router.get('/:entitySlug/add', checkUserLogin, (req, res) => {
-    const entityData = entities.find(item => item.slug === req.params.entitySlug);
+router.get('/dashboard', checkUserLogin, makeNavItems, function (req, res) {
     const user = req.session.user;
-    res.render('admin/form', {
+    const entitiesList = entities.map(item => ({
+        slug: item.slug,
+        title: item.title,
+        icon: item.icon,
+    }));
+
+    res.render('admin/dashboard', {
         baseUrl: req.baseUrl,
         page: {
-            title: `Admin - ${entityData.title}`,
+            title: `Admin - dashboard`,
         },
-        entitySlug: req.params.entitySlug,
-        title: entityData.title,
-        icon: entityData.icon,
+        entities: entitiesList,
         breadcrumb: [
             {
                 title: 'Dashboard',
-                link: '/',
-                isLastOne: false,
-            },
-            {
-                title: entityData.title,
-                link: `${req.baseUrl}/${req.params.entitySlug}/1`,
-                isLastOne: false,
-            },
-            {
-                title: 'Add',
-                link: `${req.baseUrl}/${req.params.entitySlug}/add`,
+                link: '/dashboard',
                 isLastOne: true,
             },
         ],
         user: {
             image: `https://www.gravatar.com/avatar/${crypto.createHash('md5').update(user.email).digest('hex')}`,
             name: user.name,
-
         },
-        navItems: [
-            {
-                title: "users",
-                icon: "users",
-                link: "/admin/users"
-            },
-            {
-                title: "categories",
-                icon: "list",
-                link: "/admin/categories"
-            },
-            {
-                title: "events",
-                icon: "calendar",
-                link: "/admin/events"
-            },
-            {
-                title: "subscriptions",
-                icon: "id-card",
-                link: "/admin/subscriptions"
-            }
-        ],
-        fields: Object.entries(entityData.fields).map(([key, val]) => {
-            return {
-                name: key,
-                type: val.type,
-                label: val.title,
-                options: val.options,
-            }
-        }),
-        getInputByType: function() {
-            switch (this.type) {
-                case 'text':
-                    return `<input type="text" id="${this.name}-input" name="${this.name}" placeholder="${this.label}" class="form-control">`;
-                case 'number':
-                    return `<input type="number" id="${this.name}-input" name="${this.name}" placeholder="${this.label}" class="form-control">`;
-                case 'long-text':
-                    return `<textarea id="${this.name}-input" name="${this.name}" placeholder="${this.label}" class="form-control"></textarea>`;
-                case 'bool':
-                    return `<label class="switch switch-3d switch-primary mr-3"><input type="checkbox" id="${this.name}-input" name="${this.name}" class="switch-input" checked="true"><span class="switch-label"></span><span class="switch-handle"></span></label>`
-                case 'date':
-                    return `<div class="input-group date datetimepicker" id="${this.name}-datepicker" data-target-input="nearest"><input type="text" id="${this.name}-input" name=""${this.name}" class="form-control datetimepicker-input" data-target="#${this.name}-datepicker"/><div class="input-group-append" data-target="#${this.name}-datepicker" data-toggle="datetimepicker"><div class="input-group-text"><i class="fa fa-calendar"></i></div></div></div>`
-                case 'enum':
-                    if (!this.options || !this.options.inputType || this.options.inputType === 'select') {
-                        const options = this.options && this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<option value="${key}">${val}</option>`));
-                        return `<select id="${this.name}-input" name="${this.name}" class="form-control"><option value="0">Please select</option>${options && options.join('')}</select>`;
-                    } else if (this.options && this.options.inputType && this.options.inputType === 'radio') {
-                        const radios = this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<div class="radio"><label for="${this.name}-${key}-radio" class="form-check-label "><input type="radio" id="${this.name}-${key}-radio" name="${this.name}" value="${key}" class="form-check-input">${val}</label></div>`));
-                        return `<div class="form-check">${radios.join('')}</div>`;
-                    } else if (this.options && this.options.inputType && this.options.inputType === 'radio-inline') {
-                        const radios = this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<label for="${this.name}-${key}-radio" class="form-check-label "><input type="radio" id="${this.name}-${key}-radio" name="${this.name}" value="${key}" class="form-check-input">${val} &nbsp;&nbsp;</label>`));
-                        return `<div class="form-check-inline form-check">${radios.join('')}</div>`;
-                    } else {
-                        return ''
-                    }
-                case 'multi-enum':
-                    if (!this.options || !this.options.inputType || this.options.inputType === 'select') {
-                        const options = this.options && this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<option value="${key}">${val}</option>`));
-                        return `<select id="${this.name}-input" name="${this.name}" class="form-control" multiple=""><option value="0">Please select</option>${options && options.join('')}</select>`;
-                    } else if (this.options && this.options.inputType && this.options.inputType === 'check-box') {
-                        const checkboxs = this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<div class="checkbox"><label for="${this.name}-${key}-checkbox" class="form-check-label "><input type="checkbox" id="${this.name}-${key}-checkbox" name="${this.name}" value="${key}" class="form-check-input">${val}</label></div>`));
-                        return `<div class="form-check">${checkboxs.join('')}</div>`;
-                    } else if (this.options && this.options.inputType && this.options.inputType === 'check-box-inline') {
-                        const checkboxs = this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<label for="${this.name}-${key}-checkbox" class="form-check-label "><input type="checkbox" id="${this.name}-${key}-checkbox" name="${this.name}" value="${key}" class="form-check-input">${val} &nbsp;&nbsp;</label>`));
-                        return `<div class="form-check-inline form-check">${checkboxs.join('')}</div>`;
-                    } else {
-                        return ''
-                    }
-                case 'file':
-                    return `<input type="file" id="${this.name}-input" name="${this.name}" class="form-control-file">`
-                default:
-                    return ''
-            }
-        }
+        navItems: req.navItems,
+        addItemLink: null,
     });
-});
+})
 
-router.get('/:entitySlug/:page', checkUserLogin, (req, res) => {
+router.get('/:entitySlug/:page', checkUserLogin, makeNavItems, (req, res) => {
     const user = req.session.user;
     const entityData = entities.find(item => item.slug === req.params.entitySlug);
     const headers = entityData.listViewFields.map(item => {
@@ -373,29 +200,8 @@ router.get('/:entitySlug/:page', checkUserLogin, (req, res) => {
             name: user.name,
 
         },
-        navItems: [
-            {
-                title: "users",
-                icon: "users",
-                link: "/admin/users"
-            },
-            {
-                title: "categories",
-                icon: "list",
-                link: "/admin/categories"
-            },
-            {
-                title: "events",
-                icon: "calendar",
-                link: "/admin/events"
-            },
-            {
-                title: "subscriptions",
-                icon: "id-card",
-                link: "/admin/subscriptions"
-            }
-        ],
-        addItemLink: '/add',
+        navItems: req.navItems,
+        addItemLink: `${req.baseUrl}/${req.params.entitySlug}/add`,
         actions: entityData.listViewActions,
         headers,
         items,
@@ -440,6 +246,282 @@ router.get('/:entitySlug/:page', checkUserLogin, (req, res) => {
     });
 });
 
+router.get('/:entitySlug/add', checkUserLogin, makeNavItems, (req, res) => {
+    const entityData = entities.find(item => item.slug === req.params.entitySlug);
+    const user = req.session.user;
+    res.render('admin/form', {
+        baseUrl: req.baseUrl,
+        page: {
+            title: `Admin - ${entityData.title}`,
+        },
+        entitySlug: req.params.entitySlug,
+        title: entityData.title,
+        icon: entityData.icon,
+        breadcrumb: [
+            {
+                title: 'Dashboard',
+                link: '/',
+                isLastOne: false,
+            },
+            {
+                title: entityData.title,
+                link: `${req.baseUrl}/${req.params.entitySlug}/1`,
+                isLastOne: false,
+            },
+            {
+                title: 'Add',
+                link: `${req.baseUrl}/${req.params.entitySlug}/add`,
+                isLastOne: true,
+            },
+        ],
+        user: {
+            image: `https://www.gravatar.com/avatar/${crypto.createHash('md5').update(user.email).digest('hex')}`,
+            name: user.name,
+
+        },
+        navItems: req.navItems,
+        fields: Object.entries(entityData.fields).map(([key, val]) => {
+            return {
+                name: key,
+                type: val.type,
+                label: val.title,
+                options: val.options,
+            }
+        }),
+        getInputByType: function() {
+            switch (this.type) {
+                case 'text':
+                    return `<input type="text" id="${this.name}-input" name="${this.name}" placeholder="${this.label}" class="form-control">`;
+                case 'number':
+                    return `<input type="number" id="${this.name}-input" name="${this.name}" placeholder="${this.label}" class="form-control">`;
+                case 'long-text':
+                    return `<textarea id="${this.name}-input" name="${this.name}" placeholder="${this.label}" class="form-control"></textarea>`;
+                case 'bool':
+                    return `<label class="switch switch-3d switch-primary mr-3"><input type="checkbox" id="${this.name}-input" name="${this.name}" class="switch-input" ><span class="switch-label"></span><span class="switch-handle"></span></label>`
+                case 'date':
+                    return `<div class="input-group date datetimepicker" id="${this.name}-datepicker" data-target-input="nearest"><input type="text" id="${this.name}-input" name=""${this.name}" class="form-control datetimepicker-input" data-target="#${this.name}-datepicker"/><div class="input-group-append" data-target="#${this.name}-datepicker" data-toggle="datetimepicker"><div class="input-group-text"><i class="fa fa-calendar"></i></div></div></div>`
+                case 'enum':
+                    if (!this.options || !this.options.inputType || this.options.inputType === 'select') {
+                        const options = this.options && this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<option value="${key}">${val}</option>`));
+                        return `<select id="${this.name}-input" name="${this.name}" class="form-control"><option value="0">Please select</option>${options && options.join('')}</select>`;
+                    } else if (this.options && this.options.inputType && this.options.inputType === 'radio') {
+                        const radios = this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<div class="radio"><label for="${this.name}-${key}-radio" class="form-check-label "><input type="radio" id="${this.name}-${key}-radio" name="${this.name}" value="${key}" class="form-check-input">${val}</label></div>`));
+                        return `<div class="form-check">${radios.join('')}</div>`;
+                    } else if (this.options && this.options.inputType && this.options.inputType === 'radio-inline') {
+                        const radios = this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<label for="${this.name}-${key}-radio" class="form-check-label "><input type="radio" id="${this.name}-${key}-radio" name="${this.name}" value="${key}" class="form-check-input">${val} &nbsp;&nbsp;</label>`));
+                        return `<div class="form-check-inline form-check">${radios.join('')}</div>`;
+                    } else {
+                        return ''
+                    }
+                case 'multi-enum':
+                    if (!this.options || !this.options.inputType || this.options.inputType === 'select') {
+                        const options = this.options && this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<option value="${key}">${val}</option>`));
+                        return `<select id="${this.name}-input" name="${this.name}" class="form-control" multiple=""><option value="0">Please select</option>${options && options.join('')}</select>`;
+                    } else if (this.options && this.options.inputType && this.options.inputType === 'check-box') {
+                        const checkboxs = this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<div class="checkbox"><label for="${this.name}-${key}-checkbox" class="form-check-label "><input type="checkbox" id="${this.name}-${key}-checkbox" name="${this.name}" value="${key}" class="form-check-input">${val}</label></div>`));
+                        return `<div class="form-check">${checkboxs.join('')}</div>`;
+                    } else if (this.options && this.options.inputType && this.options.inputType === 'check-box-inline') {
+                        const checkboxs = this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<label for="${this.name}-${key}-checkbox" class="form-check-label "><input type="checkbox" id="${this.name}-${key}-checkbox" name="${this.name}" value="${key}" class="form-check-input">${val} &nbsp;&nbsp;</label>`));
+                        return `<div class="form-check-inline form-check">${checkboxs.join('')}</div>`;
+                    } else {
+                        return ''
+                    }
+                case 'file':
+                    return `<input type="file" id="${this.name}-input" name="${this.name}" class="form-control-file">`
+                case 'query':
+                    return `
+                        <select class="form-control" id="${this.name}-input" name="${this.name}"><option value="">Please select</option></select>
+                        <script>
+                        window.onload = function() {
+                            $('#${this.name}-input').select2({ajax: {
+                                url: '/admin/get-query/${req.params.entitySlug}/${this.name}',
+                                data: function (params) {
+                                    return {
+                                        q: params.term,
+                                        page:  params.page || 1
+                                    }
+                                }
+                            }});
+                        };
+                        </script>
+                    `
+                case 'query-multiple':
+                    return `
+                        <select class="form-control" id="${this.name}-input" name="${this.name}"></select>
+                        <script>
+                        window.onload = function() {
+                            $('#${this.name}-input').select2({ajax: {
+                                url: '/admin/get-query/${req.params.entitySlug}/${this.name}',
+                                data: function (params) {
+                                    return {
+                                        q: params.term,
+                                        page:  params.page || 1
+                                    }
+                                }
+                            }, multiple: true});
+                        };
+                        </script>
+                    `
+                default:
+                    return ''
+            }
+        }
+    });
+});
+
+router.post('/:entitySlug/add', checkUserLogin, (req, res) => {
+    const entityData = entities.find(item => item.slug === req.params.entitySlug);    
+    entityData.addItem(req.body);
+    res.redirect(`/admin/${req.params.entitySlug}/1`);
+})
+
+router.get('/:entitySlug/:id/edit', checkUserLogin, makeNavItems, (req, res) => {
+    const entityData = entities.find(item => item.slug === req.params.entitySlug);
+    const targetItem = entityData.getItem(req.params.id);
+    const user = req.session.user;
+    res.render('admin/form', {
+        baseUrl: req.baseUrl,
+        page: {
+            title: `Admin - ${entityData.title}`,
+        },
+        entitySlug: req.params.entitySlug,
+        title: entityData.title,
+        icon: entityData.icon,
+        breadcrumb: [
+            {
+                title: 'Dashboard',
+                link: '/',
+                isLastOne: false,
+            },
+            {
+                title: entityData.title,
+                link: `${req.baseUrl}/${req.params.entitySlug}/1`,
+                isLastOne: false,
+            },
+            {
+                title: 'Edit',
+                link: `${req.baseUrl}/${req.params.entitySlug}/${req.params.id}/edit`,
+                isLastOne: true,
+            },
+        ],
+        user: {
+            image: `https://www.gravatar.com/avatar/${crypto.createHash('md5').update(user.email).digest('hex')}`,
+            name: user.name,
+
+        },
+        navItems: req.navItems,
+        fields: Object.entries(entityData.fields).map(([key, val]) => {
+            return {
+                name: key,
+                type: val.type,
+                label: val.title,
+                options: val.options,
+                value: targetItem[key],
+            }
+        }),
+        getInputByType: function() {
+            switch (this.type) {
+                case 'text':
+                    return `<input type="text" id="${this.name}-input" value="${this.value}" name="${this.name}" placeholder="${this.label}" class="form-control">`;
+                case 'number':
+                    return `<input type="number" id="${this.name}-input" value="${this.value}" name="${this.name}" placeholder="${this.label}" class="form-control">`;
+                case 'long-text':
+                    return `<textarea id="${this.name}-input" value="${this.value}" name="${this.name}" placeholder="${this.label}" class="form-control"></textarea>`;
+                case 'bool':
+                    return `<label class="switch switch-3d switch-primary mr-3"><input type="checkbox" id="${this.name}-input" name="${this.name}" class="switch-input" ${this.value ? 'checked="true"' : ''}"><span class="switch-label"></span><span class="switch-handle"></span></label>`
+                case 'date':
+                    return `<div class="input-group date datetimepicker" id="${this.name}-datepicker" data-target-input="nearest"><input type="text" id="${this.name}-input" value="${this.value}" name="${this.name}" class="form-control datetimepicker-input" data-target="#${this.name}-datepicker"/><div class="input-group-append" data-target="#${this.name}-datepicker" data-toggle="datetimepicker"><div class="input-group-text"><i class="fa fa-calendar"></i></div></div></div>`
+                case 'enum':
+                    if (!this.options || !this.options.inputType || this.options.inputType === 'select') {
+                        const options = this.options && this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<option value="${key}">${val}</option>`));
+                        return `<select value="${this.value}" id="${this.name}-input" name="${this.name}" class="form-control"><option value="0">Please select</option>${options && options.join('')}</select>`;
+                    } else if (this.options && this.options.inputType && this.options.inputType === 'radio') {
+                        const radios = this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<div class="radio"><label for="${this.name}-${key}-radio" class="form-check-label "><input type="radio" id="${this.name}-${key}-radio" name="${this.name}" value="${key}" ${this.value === key ? 'checked="true"' : ''} class="form-check-input">${val}</label></div>`));
+                        return `<div class="form-check">${radios.join('')}</div>`;
+                    } else if (this.options && this.options.inputType && this.options.inputType === 'radio-inline') {
+                        const radios = this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<label for="${this.name}-${key}-radio" class="form-check-label "><input type="radio" id="${this.name}-${key}-radio" name="${this.name}" value="${key}" ${this.value === key ? 'checked="true"' : ''} class="form-check-input">${val} &nbsp;&nbsp;</label>`));
+                        return `<div class="form-check-inline form-check">${radios.join('')}</div>`;
+                    } else {
+                        return ''
+                    }
+                case 'multi-enum':
+                    if (!this.options || !this.options.inputType || this.options.inputType === 'select') {
+                        const options = this.options && this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<option value="${key}" ${this.value.includes(key) ? 'selected' : ''}>${val}</option>`));
+                        return `<select id="${this.name}-input" name="${this.name}" class="form-control" multiple="">${options && options.join('')}</select>`;
+                    } else if (this.options && this.options.inputType && this.options.inputType === 'check-box') {
+                        const checkboxs = this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<div class="checkbox"><label for="${this.name}-${key}-checkbox" class="form-check-label "><input type="checkbox" id="${this.name}-${key}-checkbox" name="${this.name}" value="${key}" ${this.value.includes(key) ? 'checked' : ''} class="form-check-input">${val}</label></div>`));
+                        return `<div class="form-check">${checkboxs.join('')}</div>`;
+                    } else if (this.options && this.options.inputType && this.options.inputType === 'check-box-inline') {
+                        const checkboxs = this.options.map && Object.entries(this.options.map).map(([key, val]) => (`<label for="${this.name}-${key}-checkbox" class="form-check-label "><input type="checkbox" id="${this.name}-${key}-checkbox" name="${this.name}" value="${key}" ${this.value.includes(key) ? 'checked' : ''} class="form-check-input">${val} &nbsp;&nbsp;</label>`));
+                        return `<div class="form-check-inline form-check">${checkboxs.join('')}</div>`;
+                    } else {
+                        return ''
+                    }
+                case 'file':
+                    return `<input type="file" id="${this.name}-input" name="${this.name}" value="${this.value}" class="form-control-file">`
+                case 'query':
+                    const label = this.options.getLabel(this.value).text;
+                    return `
+                        <select class="form-control" id="${this.name}-input" name="${this.name}"><option value="${this.value}">${label}</option></select>
+                        <script>
+                        window.onload = function() {
+                            $('#${this.name}-input').select2({ajax: {
+                                url: '/admin/get-query/${req.params.entitySlug}/${this.name}',
+                                data: function (params) {
+                                    return {
+                                        q: params.term,
+                                        page:  params.page || 1
+                                    }
+                                }
+                            }});
+                        };
+                        </script>
+                    `
+                case 'query-multiple':
+                    const preSelectedOptions = this.value.map(key => (`<option value="${key}" selected="selected">${this.options.getLabel(key).text}</option>`)).join(' ');
+                    return `
+                        <select class="form-control" id="${this.name}-input" name="${this.name}" multiple="">
+                            ${preSelectedOptions}
+                        </select>
+                        <script>
+                        window.onload = function() {
+                            $('#${this.name}-input').select2({ajax: {
+                                url: '/admin/get-query/${req.params.entitySlug}/${this.name}',
+                                data: function (params) {
+                                    return {
+                                        q: params.term,
+                                        page:  params.page || 1
+                                    }
+                                }
+                            }});
+                        };
+                        </script>
+                    `
+                default:
+                    return ''
+            }
+        }
+    });
+})
+
+router.post('/:entitySlug//:id/edit', checkUserLogin, (req, res) => {
+    const entityData = entities.find(item => item.slug === req.params.entitySlug);    
+    entityData.editItem(req.params.id, req.body);
+    res.redirect(`/admin/${req.params.entitySlug}/1`);
+})
+
+router.get('/:entitySlug/:id/delete', (req, res) => {
+    const entityData = entities.find(item => item.slug === req.params.entitySlug);    
+    entityData.deleteItem(req.params.id,);
+    res.redirect(`/admin/${req.params.entitySlug}/1`);
+})
+
+router.get('/get-query/:entitySlug/:field', checkUserLogin, (req, res) => {
+    const entityData = entities.find(item => item.slug === req.params.entitySlug);
+    const result = entityData.fields[req.params.field].options.onQuery(req.query.q, req.query.page);
+    res.status(200).send(result);
+})
+
 router.post('/:entitySlug/actions', (req, res) => {
     const entityData = entities.find(item => item.slug === req.params.entitySlug);
     const { action, selectedItems } = req.body;
@@ -458,48 +540,5 @@ router.post('/:entitySlug/actions', (req, res) => {
     }
 })
 
-router.get('/', function (req, res) {
-    if (req.session.user && req.cookies.user_sid) {
-        res.redirect('/admin/user/1');
-    } else {
-        res.redirect('/admin/login');
-    }   
-})
-
-router.get('/login', (req, res) => {
-    if (req.session.user && req.cookies.user_sid) {
-        res.redirect('/admin/user/1');
-    } else {
-        res.render('admin/login', {});
-    }
-})
-
-router.post('/login', function(req, res) {
-    const {email, password, remember} = req.body;
-    
-    db.get(`SELECT rowid AS id, email, name, password FROM user WHERE email="${email}"`, function(err, row) {
-        if (err) {
-            res.status(500);
-        } else {
-            if (!row) {
-                res.redirect('/admin/login');
-            } else {
-                bcrypt.compare(password, row.password, function(err, ok) {
-                    if (err) {
-                        res.status(500);
-                    } else {
-                        if (ok) {
-                            req.session.user = row;
-                            res.redirect('/admin');
-                        } else {
-                            res.redirect('/admin/login');                                
-                        }
-                    }
-                    db.close();
-                })
-            }
-        }
-    });
-})
 
 export default router;
