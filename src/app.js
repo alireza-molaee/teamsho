@@ -7,6 +7,10 @@ import errorHandler, { notFoundErrorHandler } from './middlewares/error-handling
 import fileUpload from 'express-fileupload';
 import mustacheExpress from 'mustache-express';
 
+import expressAdmin from 'express-cool-admin';
+import { entities } from './admin-data';
+
+
 const app = express();
 
 app.set('views', __dirname + '/views');
@@ -23,7 +27,8 @@ app.use(fileUpload({
 app.use('/static', express.static('public'));
 app.use('/uploads', express.static('uploads'));
 app.use('/api', api);
-app.use('/', view);
+app.use('/asd', expressAdmin({entities}));
+// app.use('/', view);
 app.use(errorHandler);
 app.use(notFoundErrorHandler);
 
