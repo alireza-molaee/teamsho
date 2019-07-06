@@ -8,7 +8,8 @@ import fileUpload from 'express-fileupload';
 import mustacheExpress from 'mustache-express';
 
 import expressAdmin from 'express-cool-admin';
-import { entities } from './admin-data';
+// import { entities } from './admin-data';
+import adminConfig from './admin/index';
 
 
 const app = express();
@@ -27,7 +28,7 @@ app.use(fileUpload({
 app.use('/static', express.static('public'));
 app.use('/uploads', express.static('uploads'));
 app.use('/api', api);
-app.use('/asd', expressAdmin({entities}));
+app.use('/asd', expressAdmin(adminConfig));
 // app.use('/', view);
 app.use(errorHandler);
 app.use(notFoundErrorHandler);
